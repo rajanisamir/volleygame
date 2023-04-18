@@ -625,7 +625,7 @@ MonoBehaviour:
   jumpHeight: 1
   bumpRange: 1
   spikeRange: 2
-  gravityValue: -9.81
+  gravityValue: -4.9
   arms: {fileID: 6178445211958525067}
   spikeLine: {fileID: 1945727135}
   posHold: {fileID: 6178445210021111803}

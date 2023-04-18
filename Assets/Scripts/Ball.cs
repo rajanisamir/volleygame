@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Hit
@@ -12,23 +11,12 @@ public class Hit
         this.hitType = hitType;
         this.target = target;
     }
-
-}
-
-enum BallPosition
-{
-    Air,
-    OutOfBounds,
-    CourtTeamA,
-    CourtTeamB,
 }
 
 public class Ball : MonoBehaviour
 {
-
     static Ball _instance;
     public static Ball Instance { get { return _instance; } }
-
 
     // Implements Singleton Pattern
     void Awake()
@@ -51,14 +39,14 @@ public class Ball : MonoBehaviour
     [SerializeField] float bumpTime = 3f;
     [SerializeField] float airResistance = 2f;
     [SerializeField] float returnToServerTime = 1.0f;
-
+    [SerializeField] int hitLimit = 3;
     [SerializeField] bool allowAnyHits = false;
 
     Rigidbody rb;
    
     bool isDead = false;
     string lastHitter;
-    // Queue<Hit> hitQueue = new Queue<Hit>();
+    int consecutiveTeamHits;
 
     void Start()
     {
@@ -70,7 +58,6 @@ public class Ball : MonoBehaviour
 
     void FixedUpdate()
     {
-        // ProcessHitQueue();
         ApplyAirResistance();
     }
 
@@ -82,56 +69,44 @@ public class Ball : MonoBehaviour
         var forceAmount = v * airResistance;
         rb.AddForce(direction * forceAmount);
     }
-        
+    
+    // Handling Dead Ball
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("CourtTeamA"))
         {
-            HandleDeadBall(BallPosition.CourtTeamA);
+            HandleDeadBall("B");
         }
         else if (collision.gameObject.CompareTag("CourtTeamB"))
         {
-            HandleDeadBall(BallPosition.CourtTeamB);
+            HandleDeadBall("A");
         }
         else if (collision.gameObject.CompareTag("Out of Bounds"))
         {
-            HandleDeadBall(BallPosition.CourtTeamA);
+            if (lastHitter == "A") HandleDeadBall("B");
+            else HandleDeadBall("A");
         }
     }
 
-    void HandleDeadBall(BallPosition ballPosition)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!isDead && ballPosition != BallPosition.Air)
+        if (other.CompareTag("Under Net")) {
+            if (lastHitter == "A") HandleDeadBall("B");
+            else HandleDeadBall("A");
+        }
+    }
+
+    void HandleDeadBall(string scoringTeam)
+    {
+        if (!isDead)
         {
-            isDead = true;
             Debug.Log("Ball is dead.");
-            if (ballPosition == BallPosition.CourtTeamA)
-            {
-                Debug.Log("(Point Team B) Ball landed in team A court.");
-                scoreManager.IncrementTeamBScore();
-                playerManager.SetCurrentServer("B");
-            }
-            else if (ballPosition == BallPosition.CourtTeamB)
-            {
-                Debug.Log("(Point Team A) Ball landed in team B court.");
-                scoreManager.IncrementTeamAScore();
-                playerManager.SetCurrentServer("A");
-            }
-            else
-            {
-                if (lastHitter == "A")
-                {
-                    Debug.Log("(Point Team B) Ball landed out of bounds; last hitter Was A.");
-                    scoreManager.IncrementTeamBScore();
-                    playerManager.SetCurrentServer("B");
-                }
-                else if (lastHitter == "B")
-                {
-                    Debug.Log("(Point Team A) Ball landed out of bounds; last hitter Was B.");
-                    scoreManager.IncrementTeamAScore();
-                    playerManager.SetCurrentServer("A");
-                }
-            }
+            isDead = true;
+            consecutiveTeamHits = 0;
+
+            scoreManager.IncrementTeamScore(scoringTeam);
+            playerManager.SetCurrentServer(scoringTeam);
+
             IEnumerator coroutine = GiveBallToServer();
             StartCoroutine(coroutine);
         }
@@ -164,6 +139,14 @@ public class Ball : MonoBehaviour
     // Ball Hitting Functions
     public bool Hit(string team, string hitType, Vector3 target)
     {
+        if (lastHitter == team) consecutiveTeamHits += 1;
+        else consecutiveTeamHits = 1;
+        if (consecutiveTeamHits > hitLimit)
+        {
+            Debug.Log("Foul");
+            if (team == "A") HandleDeadBall("B");
+            else HandleDeadBall("A");
+        }
         if (!allowAnyHits)
         {
             if (hitType == "serve" && transform.parent == null)
@@ -177,28 +160,11 @@ public class Ball : MonoBehaviour
         }
         lastHitter = team;
         ReleaseBallFromServer();
-        if (hitType == "serve") ExecuteServe(target);
-        if (hitType == "bump") ExecuteBump(target);
-        if (hitType == "spike") ExecuteSpike(target);
-        // hitQueue.Enqueue(new Hit(hitType, target));
+        if (hitType == "serve") HitToPoint(target, serveTime);
+        if (hitType == "bump") HitToPoint(target, bumpTime);
+        if (hitType == "spike") HitToPoint(target, spikeTime);
         return true;
     }
-
-    private void ExecuteServe(Vector3 target)
-    {
-        HitToPoint(target, serveTime);
-    }
-
-    private void ExecuteBump(Vector3 target)
-    {
-        HitToPoint(target, bumpTime);
-    }
-
-    private void ExecuteSpike(Vector3 target)
-    {
-        HitToPoint(target, spikeTime);
-    }
-
     private void HitToPoint(Vector3 target, float time)
     {
         float dx = target.x - transform.position.x;
@@ -212,19 +178,4 @@ public class Ball : MonoBehaviour
 
         rb.velocity = new Vector3(velX, velY, velZ);
     }
-
-    /*
-    void ProcessHitQueue()
-    {
-        while (hitQueue.Count > 0)
-        {
-            Hit hit = hitQueue.Dequeue();
-            string hitType = hit.hitType;
-            Transform target = hit.target;
-            if (hitType == "serve") ExecuteServe(target);
-            if (hitType == "bump") ExecuteBump(target);
-            if (hitType == "spike") ExecuteSpike(target);
-        }
-    }
-    */
 }

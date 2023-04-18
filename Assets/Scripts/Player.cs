@@ -15,33 +15,39 @@ public class Player : MonoBehaviour
     Athlete leftAthlete;
     Athlete rightAthlete;
 
+    // Set by PlayerManager
     public string team;
-
-    bool isServer = false;
-    bool readyToServe = false;
     public bool firstServer = false;
 
+    // Instance Variables
+    bool isServer = false;
+    bool readyToServe = false;
     bool isSpiking = false;
 
+    // Court Positions
     float opponentCourtLeft;
     float opponentCourtRight;
     float opponentCourtFront;
     float opponentCourtBack;
 
     float teamCourtLeft;
+    float teamCourtCenterX;
     float teamCourtRight;
     float teamCourtFront;
+    float teamCourtCenterZ;
     float teamCourtBack;
 
-    Vector3 leftSpawnPosition;
-    Vector3 rightSpawnPosition;
+    Vector3 leftSpawnPositionServe;
+    Vector3 rightSpawnPositionServe;
+    Vector3 leftSpawnPositionReceive;
+    Vector3 rightSpawnPositionReceive;
 
     void Awake()
     {
         GetCourtPositions();
         SpawnTarget();
         SpawnAthletes();
-        SetIsServer(firstServer); 
+        SetIsServer(firstServer);
     }
 
     void GetCourtPositions()
@@ -53,20 +59,23 @@ public class Player : MonoBehaviour
         Transform opponentCourt = GameObject.FindGameObjectWithTag(opponentCourtTag).transform;
 
         int teamMultiplier = team == "A" ? 1 : -1;
-        int opponentMultiplier = team == "A" ? -1 : 1;
 
         teamCourtLeft = teamCourt.position.x - teamMultiplier * teamCourt.localScale.x / 2;
+        teamCourtCenterX = teamCourt.position.x;
         teamCourtRight = teamCourt.position.x + teamMultiplier * teamCourt.localScale.x / 2;
         teamCourtFront = teamCourt.position.z + teamMultiplier * teamCourt.localScale.z / 2;
+        teamCourtCenterZ = teamCourt.position.z;
         teamCourtBack = teamCourt.position.z - teamMultiplier * teamCourt.localScale.z / 2;
 
-        opponentCourtLeft = opponentCourt.position.x - opponentMultiplier * opponentCourt.localScale.x / 2;
-        opponentCourtRight = opponentCourt.position.x + opponentMultiplier * opponentCourt.localScale.x / 2;
-        opponentCourtFront = opponentCourt.position.z + opponentMultiplier * opponentCourt.localScale.z / 2;
-        opponentCourtBack = opponentCourt.position.z - opponentMultiplier * opponentCourt.localScale.z / 2;
+        opponentCourtLeft = opponentCourt.position.x - teamMultiplier * opponentCourt.localScale.x / 2;
+        opponentCourtRight = opponentCourt.position.x + teamMultiplier * opponentCourt.localScale.x / 2;
+        opponentCourtFront = opponentCourt.position.z - teamMultiplier * opponentCourt.localScale.z / 2;
+        opponentCourtBack = opponentCourt.position.z + teamMultiplier * opponentCourt.localScale.z / 2;
 
-        leftSpawnPosition = new Vector3(teamCourtLeft, 0f, teamCourtBack);
-        rightSpawnPosition = new Vector3(teamCourtRight, 0f, teamCourtBack);
+        leftSpawnPositionServe = new Vector3(teamCourtLeft, 0f, teamCourtBack);
+        rightSpawnPositionServe = new Vector3(teamCourtRight, 0f, teamCourtBack);
+        leftSpawnPositionReceive = new Vector3((teamCourtLeft + teamCourtCenterX) / 2, 0f, teamCourtCenterZ);
+        rightSpawnPositionReceive = new Vector3((teamCourtRight + teamCourtCenterX) / 2, 0f, teamCourtCenterZ);
     }
 
     void SpawnTarget()
@@ -78,8 +87,16 @@ public class Player : MonoBehaviour
 
     void SpawnAthletes()
     {
-        leftAthlete = Instantiate(athleteTemplate, leftSpawnPosition, Quaternion.identity);
-        rightAthlete = Instantiate(athleteTemplate, rightSpawnPosition, Quaternion.identity);
+        if (firstServer)
+        {
+            leftAthlete = Instantiate(athleteTemplate, leftSpawnPositionServe, Quaternion.identity);
+            rightAthlete = Instantiate(athleteTemplate, rightSpawnPositionServe, Quaternion.identity);
+        }
+        else
+        {
+            leftAthlete = Instantiate(athleteTemplate, leftSpawnPositionReceive, Quaternion.identity);
+            rightAthlete = Instantiate(athleteTemplate, rightSpawnPositionReceive, Quaternion.identity);
+        }
 
         leftAthlete.team = team;
         rightAthlete.team = team;
@@ -97,19 +114,31 @@ public class Player : MonoBehaviour
     public void MoveAthletesToSpawn()
     {
         Debug.Log("Moving athletes to spawn.");
-        leftAthlete.GetComponent<CharacterController>().enabled = false;
-        rightAthlete.GetComponent<CharacterController>().enabled = false;
-        leftAthlete.transform.position = leftSpawnPosition;
-        rightAthlete.transform.position = rightSpawnPosition;
-        leftAthlete.GetComponent<CharacterController>().enabled = true;
-        rightAthlete.GetComponent<CharacterController>().enabled = true;
+        CharacterController leftCharacterController = leftAthlete.GetComponent<CharacterController>();
+        CharacterController rightCharacterController = rightAthlete.GetComponent<CharacterController>();
+
+        leftCharacterController.enabled = false;
+        rightCharacterController.enabled = false;
+
+        if (isServer)
+        {
+            leftAthlete.transform.position = leftSpawnPositionServe;
+            rightAthlete.transform.position = rightSpawnPositionServe;
+        }
+        else
+        {
+            leftAthlete.transform.position = leftSpawnPositionReceive;
+            rightAthlete.transform.position = rightSpawnPositionReceive;
+        }
+
+        leftCharacterController.enabled = true;
+        rightCharacterController.enabled = true;
     }
 
     public void OnMove(InputAction.CallbackContext context)
     {
         Vector2 movementInput = context.ReadValue<Vector2>();
-        // need to flip input for team B because of camera direction
-        if (team == "B") movementInput = -movementInput;
+        
 
         if (readyToServe)
         {
@@ -119,21 +148,63 @@ public class Player : MonoBehaviour
         {
             leftAthlete.SetMovementInput(Vector2.zero);
 
-            // Compute spike aim 
+            // Compute spike aim
             float aimX = Mathf.Lerp(opponentCourtLeft, opponentCourtRight, Mathf.InverseLerp(-1f, 1f, movementInput.x));
             float aimY = Mathf.Lerp(opponentCourtFront, opponentCourtBack, Mathf.InverseLerp(-1f, 1f, movementInput.y));
             currentAthlete.SetSpikeAim(new Vector2(aimX, aimY));
         }
         else
         {
+            // need to flip input for team B because of camera direction
+            if (team == "B") movementInput = -movementInput;
             leftAthlete.SetMovementInput(movementInput);
         }
     }
 
+    public void SetTargetVisible(bool visible)
+    {
+        target.GetComponent<Renderer>().enabled = visible;
+    }
+
+    private void SwitchAthlete()
+    {
+        currentAthlete.SetActive(false);
+        var temp = otherAthlete;
+        otherAthlete = currentAthlete;
+        currentAthlete = temp;
+        currentAthlete.SetActive(true);
+    }
+
+    private void SwitchServer()
+    {
+        var temp = leftAthlete;
+        leftAthlete = rightAthlete;
+        rightAthlete = temp;
+        if (currentAthlete != leftAthlete) SwitchAthlete();
+    }
+   
+    public void SetIsServer(bool server)
+    {   
+        SetTargetVisible(server);
+        readyToServe = server;
+        isServer = server;
+        // If player wasn't the server, need to switch the athlete who is serving.
+        if (server && !isServer)
+        {
+            SwitchServer();
+        }
+    }
+
+    public Transform GetServerHoldPos()
+    {
+        return leftAthlete.posHold;
+    }
+
+    // Input System Callbacks
     public void OnTargetMove(InputAction.CallbackContext context)
     {
         Vector2 movementInput = context.ReadValue<Vector2>();
-        // need to flip input for team B because of camera direction
+        // flip input for team B because of camera direction!
         if (team == "B") movementInput = -movementInput;
         if (readyToServe)
         {
@@ -193,44 +264,5 @@ public class Player : MonoBehaviour
         {
             SwitchAthlete();
         }
-    }
-
-    public void SetTargetVisible(bool visible)
-    {
-        target.GetComponent<Renderer>().enabled = visible;
-    }
-
-    private void SwitchAthlete()
-    {
-        currentAthlete.SetActive(false);
-        var temp = otherAthlete;
-        otherAthlete = currentAthlete;
-        currentAthlete = temp;
-        currentAthlete.SetActive(true);
-    }
-
-    private void SwitchServer()
-    {
-        var temp = leftAthlete;
-        leftAthlete = rightAthlete;
-        rightAthlete = temp;
-        if (currentAthlete != leftAthlete) SwitchAthlete();
-    }
-   
-    public void SetIsServer(bool server)
-    {   
-        SetTargetVisible(server);
-        readyToServe = server;
-        isServer = server;
-        // If player wasn't the server, need to switch the athlete who is serving.
-        if (server && !isServer)
-        {
-            SwitchServer();
-        }
-    }
-
-    public Transform GetServerHoldPos()
-    {
-        return leftAthlete.posHold;
     }
 }

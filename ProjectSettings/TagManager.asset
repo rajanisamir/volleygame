@@ -7,6 +7,7 @@ TagManager:
   - CourtTeamB
   - CourtTeamA
   - Out of Bounds
+  - Under Net
   layers:
   - Default
   - TransparentFX
@@ -20,7 +21,7 @@ TagManager:
   - Court Team A
   - Court Team B
   - Out of Bounds
-  - 
+  - Player Blockade
   - 
   - 
   - 

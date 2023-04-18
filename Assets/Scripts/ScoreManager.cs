@@ -26,15 +26,10 @@ public class ScoreManager : MonoBehaviour
         scoreText.text = teamAScore.ToString() + " - " + teamBScore.ToString();
     }
 
-    public void IncrementTeamAScore()
+    public void IncrementTeamScore(string team)
     {
-        teamAScore++;
-        UpdateScoreText();
-    }
-
-    public void IncrementTeamBScore()
-    {
-        teamBScore++;
+        if (team == "A") teamAScore++;
+        if (team == "B") teamBScore++;
         UpdateScoreText();
     }
 }

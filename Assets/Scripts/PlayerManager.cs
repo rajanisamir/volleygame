@@ -40,20 +40,20 @@ public class PlayerManager : MonoBehaviour
     
     public void SetCurrentServer(string server)
     {
-        playerTeamA.MoveAthletesToSpawn();
-        if (playerTeamB != null) playerTeamB.MoveAthletesToSpawn();
         if (server == "A" || playerTeamB == null)
         {
             if (playerTeamB != null) playerTeamB.SetIsServer(false);
             playerTeamA.SetIsServer(true);
             currentServer = playerTeamA;
         }
-        else if (server == "B")
+        else
         {
             playerTeamA.SetIsServer(false);
             playerTeamB.SetIsServer(true);
             currentServer = playerTeamB;
         }
+        playerTeamA.MoveAthletesToSpawn();
+        if (playerTeamB != null) playerTeamB.MoveAthletesToSpawn();
     }
 
     public Transform GetServerHoldPos()
