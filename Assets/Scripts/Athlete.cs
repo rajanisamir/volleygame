@@ -10,11 +10,16 @@ public class Athlete : MonoBehaviour
     [SerializeField] float bumpRange = 1f;
     [SerializeField] float spikeRange = 1f;
     [SerializeField] float gravityValue = -9.81f;
+    [SerializeField] float rollDuration = 0.25f;
+    [SerializeField] float rollSpeed = 20f;
+    [SerializeField] float rollCooldown = 2f;
 
     [SerializeField] Transform arms;
     [SerializeField] LineRenderer spikeLine;
    
     public Transform posHold;
+    public Player player;
+    public Athlete otherAthlete;
 
     Target target;
     CharacterController controller;
@@ -22,10 +27,16 @@ public class Athlete : MonoBehaviour
 
     Vector3 spikeAimPosition;
     Vector3 playerVelocity;
+
     Vector2 movementInput = Vector2.zero;
+    Vector3 rollDirection;
     bool jumped = false;
+    bool rolled = false;
     bool isSpiking = false;
+    bool isRolling = false;
     bool groundedPlayer;
+    float rollTime;
+    float currentRollCooldown = 0f;
     public string team;
 
     Ball ball;
@@ -54,20 +65,65 @@ public class Athlete : MonoBehaviour
         }
 
         Vector3 move = new Vector3(movementInput.x, 0, movementInput.y);
+
         controller.Move(move * Time.deltaTime * moveSpeed);
 
-        if (move != Vector3.zero)
+        // Check for roll movement
+        if (rolled && Mathf.Approximately(0f, currentRollCooldown)) 
         {
-            gameObject.transform.forward = move;
+            if (move != Vector3.zero)
+            {
+                if (Mathf.Abs(move.x) >= Mathf.Abs(move.z)) {
+                    rollDirection = new Vector3(Mathf.Sign(move.x), 0f, 0f);
+                }
+                else
+                {
+                    rollDirection = new Vector3(0f, 0f, Mathf.Sign(move.z));
+                }
+                rolled = false;
+                isRolling = true;
+                currentRollCooldown = rollCooldown;
+                rollTime = rollDuration;
+            }
+        }
+        if (currentRollCooldown > 0f)
+        {
+            currentRollCooldown -= Time.deltaTime;
+            if (currentRollCooldown < 0f) currentRollCooldown = 0f;
+        }
+        if (rollTime > 0f)
+        {
+            rollTime -= Time.deltaTime;
+            if (rollTime <= 0f) isRolling = false;
         }
 
-        if (jumped && groundedPlayer)
+        if (isRolling)
         {
-            playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
-        }
+            // move and adjust facing direction
+            controller.Move(rollSpeed * Time.deltaTime * rollDirection);
+            gameObject.transform.forward = rollDirection;
 
-        playerVelocity.y += gravityValue * Time.deltaTime;
-        controller.Move(playerVelocity * Time.deltaTime);
+            Debug.Log("Attempting bump");
+            if (AttemptBump(otherAthlete.transform.position))
+            {
+                Debug.Log("Successful bump");
+                isRolling = false;
+                player.SwitchAthlete();
+            }
+        }
+        else
+        {
+            if (jumped && groundedPlayer)
+            {
+                playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
+            }
+            if (move != Vector3.zero)
+            {
+                gameObject.transform.forward = move;
+            }
+            playerVelocity.y += gravityValue * Time.deltaTime;
+            controller.Move(playerVelocity * Time.deltaTime);
+        }
     }
 
     void UpdateSpike()
@@ -92,6 +148,11 @@ public class Athlete : MonoBehaviour
     public void SetJumped(bool jumped)
     {
         this.jumped = jumped;
+    }
+
+    public void SetRolled (bool rolled)
+    {
+        this.rolled = rolled;
     }
 
     public void SetSpikeAim(Vector2 target)

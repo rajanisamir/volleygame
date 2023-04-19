@@ -107,6 +107,12 @@ public class Player : MonoBehaviour
         leftAthlete.SetActive(true);
         rightAthlete.SetActive(false);
 
+        leftAthlete.otherAthlete = rightAthlete;
+        rightAthlete.otherAthlete = leftAthlete;
+
+        leftAthlete.player = this;
+        rightAthlete.player = this;
+
         currentAthlete = leftAthlete;
         otherAthlete = rightAthlete;
     }
@@ -166,7 +172,7 @@ public class Player : MonoBehaviour
         target.GetComponent<Renderer>().enabled = visible;
     }
 
-    private void SwitchAthlete()
+    public void SwitchAthlete()
     {
         currentAthlete.SetActive(false);
         var temp = otherAthlete;
@@ -264,5 +270,10 @@ public class Player : MonoBehaviour
         {
             SwitchAthlete();
         }
+    }
+
+    public void OnRoll(InputAction.CallbackContext context)
+    {
+        currentAthlete.SetRolled(context.action.triggered);
     }
 }

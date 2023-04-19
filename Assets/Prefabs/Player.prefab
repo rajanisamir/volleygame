@@ -48,6 +48,8 @@ MonoBehaviour:
   targetTemplate: {fileID: 4357753236367773738, guid: e7664917449822a45a7173afebf4a5b7, type: 3}
   athleteTemplate: {fileID: 534819345, guid: bcf28a34747b877469f5ed71cd26247a, type: 3}
   athletesPerPlayer: 2
+  team: 
+  firstServer: 0
 --- !u!114 &170845887270203124
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -185,6 +187,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 5c89ccd6-e951-4399-8925-aedcc9da9d0e
     m_ActionName: Player/Switch[/XInputControllerWindows/dpad/right,/Keyboard/shift]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 170845887270203125}
+        m_TargetAssemblyTypeName: Player, Assembly-CSharp
+        m_MethodName: OnRoll
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 2c2042af-ebce-4429-bbe8-3d55bba23b4b
+    m_ActionName: Player/Roll[/XInputControllerWindows/leftShoulder,/Keyboard/tab]
   m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Gamepad
   m_DefaultActionMap: Player
