@@ -23,8 +23,7 @@ public class PlayerManager : MonoBehaviour
             playerCamera.transform.position = new Vector3(0f, 7f, -12f);
             playerCamera.transform.rotation = Quaternion.Euler(30f, 0f, 0f);
             playerTeamA = player;
-            player.team = "A";
-            player.firstServer = true;
+            player.Init("A", true);
             Instantiate(ball);
         }
         else
@@ -33,8 +32,7 @@ public class PlayerManager : MonoBehaviour
             playerCamera.transform.position = new Vector3(0f, 7f, 12f);
             playerCamera.transform.rotation = Quaternion.Euler(30f, -180f, 0f);
             playerTeamB = player;
-            player.team = "B";
-            player.firstServer = false;
+            player.Init("B", false);
         }
     }
     

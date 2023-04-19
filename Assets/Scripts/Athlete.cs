@@ -41,6 +41,15 @@ public class Athlete : MonoBehaviour
 
     Ball ball;
 
+    public void Init(bool active, string team, Player player, Athlete otherAthlete, Target target)
+    {
+        SetActive(active);
+        this.team = team;
+        this.player = player;
+        this.otherAthlete = otherAthlete;
+        this.target = target;
+    }
+
     void Awake()
     {
         ball = FindObjectOfType<Ball>();
@@ -213,11 +222,6 @@ public class Athlete : MonoBehaviour
     public bool AttemptServe()
     {
         return ball.Hit(team, "serve", target.transform.position);
-    }
-
-    public void SetTarget(Target target)
-    {
-        this.target = target;
     }
 
     public void SetActive(bool active)

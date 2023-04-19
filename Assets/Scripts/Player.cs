@@ -11,20 +11,12 @@ public class Player : MonoBehaviour
 
     Athlete currentAthlete;
     Athlete otherAthlete;
-
     Athlete leftAthlete;
     Athlete rightAthlete;
 
-    // Set by PlayerManager
-    public string team;
-    public bool firstServer = false;
+    private string team;
+    private bool firstServer = false;
 
-    // Instance Variables
-    bool isServer = false;
-    bool readyToServe = false;
-    bool isSpiking = false;
-
-    // Court Positions
     float opponentCourtLeft;
     float opponentCourtRight;
     float opponentCourtFront;
@@ -41,6 +33,16 @@ public class Player : MonoBehaviour
     Vector3 rightSpawnPositionServe;
     Vector3 leftSpawnPositionReceive;
     Vector3 rightSpawnPositionReceive;
+
+    bool isServer = false;
+    bool readyToServe = false;
+    bool isSpiking = false;
+
+    public void Init(string team, bool firstServer)
+    {
+        this.team = team;
+        this.firstServer = firstServer;
+    }
 
     void Awake()
     {
@@ -98,20 +100,8 @@ public class Player : MonoBehaviour
             rightAthlete = Instantiate(athleteTemplate, rightSpawnPositionReceive, Quaternion.identity);
         }
 
-        leftAthlete.team = team;
-        rightAthlete.team = team;
-
-        leftAthlete.SetTarget(target);
-        rightAthlete.SetTarget(target);
-
-        leftAthlete.SetActive(true);
-        rightAthlete.SetActive(false);
-
-        leftAthlete.otherAthlete = rightAthlete;
-        rightAthlete.otherAthlete = leftAthlete;
-
-        leftAthlete.player = this;
-        rightAthlete.player = this;
+        leftAthlete.Init(true, team, this, rightAthlete, target);
+        rightAthlete.Init(false, team, this, leftAthlete, target);
 
         currentAthlete = leftAthlete;
         otherAthlete = rightAthlete;
