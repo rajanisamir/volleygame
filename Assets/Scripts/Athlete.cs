@@ -18,8 +18,8 @@ public class Athlete : MonoBehaviour
     [SerializeField] LineRenderer spikeLine;
    
     public Transform posHold;
-    public Player player;
-    public Athlete otherAthlete;
+    Player player;
+    Athlete otherAthlete;
 
     Target target;
     CharacterController controller;
@@ -37,14 +37,19 @@ public class Athlete : MonoBehaviour
     bool groundedPlayer;
     float rollTime;
     float currentRollCooldown = 0f;
-    public string team;
+    string team;
 
     Ball ball;
+
+    Vector3 opponentCourtCenter;
 
     public void Init(bool active, string team, Player player, Athlete otherAthlete, Target target)
     {
         SetActive(active);
         this.team = team;
+        string opponentCourtTag = team == "A" ? "CourtTeamB" : "CourtTeamA";
+        Debug.Log(opponentCourtTag);
+        opponentCourtCenter = GameObject.FindGameObjectWithTag(opponentCourtTag).transform.position;
         this.player = player;
         this.otherAthlete = otherAthlete;
         this.target = target;
@@ -112,10 +117,8 @@ public class Athlete : MonoBehaviour
             controller.Move(rollSpeed * Time.deltaTime * rollDirection);
             gameObject.transform.forward = rollDirection;
 
-            Debug.Log("Attempting bump");
-            if (AttemptBump(otherAthlete.transform.position))
+            if (AttemptBump())
             {
-                Debug.Log("Successful bump");
                 isRolling = false;
                 player.SwitchAthlete();
             }
@@ -209,11 +212,20 @@ public class Athlete : MonoBehaviour
         return false;
     }
 
-    public bool AttemptBump(Vector3 destination)
+    public bool AttemptBump()
     {
         float distanceToBall = Vector3.Distance(ball.transform.position, arms.position);
         if (distanceToBall < bumpRange)
         {
+            Vector3 destination;
+            if (ball.GetConsecutiveHits() == 2 && ball.GetLastHitter() == team)
+            {
+                destination = opponentCourtCenter;
+            }
+            else
+            {
+                destination = otherAthlete.transform.position;
+            }
             return ball.Hit(team, "bump", destination);
         }
         return false;

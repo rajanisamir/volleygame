@@ -178,4 +178,14 @@ public class Ball : MonoBehaviour
 
         rb.velocity = new Vector3(velX, velY, velZ);
     }
+
+    public string GetLastHitter()
+    {
+        return lastHitter;
+    }
+
+    public int GetConsecutiveHits()
+    {
+        return consecutiveTeamHits;
+    }
 }

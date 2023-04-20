@@ -14,8 +14,8 @@ public class Player : MonoBehaviour
     Athlete leftAthlete;
     Athlete rightAthlete;
 
-    private string team;
-    private bool firstServer = false;
+    string team;
+    bool firstServer = false;
 
     float opponentCourtLeft;
     float opponentCourtRight;
@@ -249,8 +249,7 @@ public class Player : MonoBehaviour
     {
         if (context.action.triggered)
         {
-            Vector3 destination = otherAthlete.transform.position;
-            if (currentAthlete.AttemptBump(destination)) SwitchAthlete();
+            if (currentAthlete.AttemptBump()) SwitchAthlete();
         }
     }
 
