@@ -46,10 +46,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetTemplate: {fileID: 4357753236367773738, guid: e7664917449822a45a7173afebf4a5b7, type: 3}
-  athleteTemplate: {fileID: 534819345, guid: bcf28a34747b877469f5ed71cd26247a, type: 3}
+  athleteTemplate: {fileID: 3142808187023930783, guid: af4e8be2e574be94ebb1e8022ca5ebb1, type: 3}
   athletesPerPlayer: 2
-  team: 
-  firstServer: 0
 --- !u!114 &170845887270203124
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,8 +124,8 @@ MonoBehaviour:
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 170845887270203125}
-        m_TargetAssemblyTypeName: PlayerInput, Assembly-CSharp
-        m_MethodName: OnServe
+        m_TargetAssemblyTypeName: Player, Assembly-CSharp
+        m_MethodName: OnSet
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

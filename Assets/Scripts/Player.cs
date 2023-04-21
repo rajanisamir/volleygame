@@ -222,31 +222,40 @@ public class Player : MonoBehaviour
 
     public void OnSpike(InputAction.CallbackContext context)
     {
+        if (readyToServe) return;
         if (context.started)
         {
             isSpiking = currentAthlete.StartSpiking();
         }
         else if (context.canceled)
         {
-            currentAthlete.AttemptSpike();
+            if (isSpiking) {
+                currentAthlete.AttemptSpike();
+            }
             isSpiking = false;
         }
     }
 
-    public void OnServe(InputAction.CallbackContext context)
+    public void OnSet(InputAction.CallbackContext context)
     {
-        if (context.action.triggered && isServer)
+        if (context.action.triggered)
         {
-            if (currentAthlete.AttemptServe())
+            if (readyToServe)
             {
-                SetTargetVisible(false);
                 readyToServe = false;
+                currentAthlete.AttemptServe();
+                SetTargetVisible(false);
+            }
+            else
+            {
+                if (currentAthlete.AttemptSet()) SwitchAthlete();
             }
         }
     }
 
     public void OnBump(InputAction.CallbackContext context)
     {
+        if (readyToServe) return;
         if (context.action.triggered)
         {
             if (currentAthlete.AttemptBump()) SwitchAthlete();

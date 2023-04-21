@@ -7,14 +7,14 @@ public class Athlete : MonoBehaviour
     [SerializeField] float spikeSlowDown = 0.4f;
     [SerializeField] float moveSpeed = 5f;
     [SerializeField] float jumpHeight = 1f;
-    [SerializeField] float bumpRange = 1f;
-    [SerializeField] float spikeRange = 1f;
+    [SerializeField] float bumpRange = 2f;
+    [SerializeField] float setRange = 2f;
+    [SerializeField] float spikeRange = 2f;
     [SerializeField] float gravityValue = -9.81f;
     [SerializeField] float rollDuration = 0.25f;
     [SerializeField] float rollSpeed = 20f;
     [SerializeField] float rollCooldown = 2f;
 
-    [SerializeField] Transform arms;
     [SerializeField] LineRenderer spikeLine;
    
     public Transform posHold;
@@ -31,7 +31,9 @@ public class Athlete : MonoBehaviour
     Vector2 movementInput = Vector2.zero;
     Vector3 rollDirection;
     bool jumped = false;
+    bool readyToJump = false;
     bool rolled = false;
+    bool readyToRoll = false;
     bool isSpiking = false;
     bool isRolling = false;
     bool groundedPlayer;
@@ -43,13 +45,17 @@ public class Athlete : MonoBehaviour
 
     Vector3 opponentCourtCenter;
 
+    Animator animator;
+
     public void Init(bool active, string team, Player player, Athlete otherAthlete, Target target)
     {
         SetActive(active);
+
         this.team = team;
         string opponentCourtTag = team == "A" ? "CourtTeamB" : "CourtTeamA";
         Debug.Log(opponentCourtTag);
         opponentCourtCenter = GameObject.FindGameObjectWithTag(opponentCourtTag).transform.position;
+
         this.player = player;
         this.otherAthlete = otherAthlete;
         this.target = target;
@@ -60,6 +66,7 @@ public class Athlete : MonoBehaviour
         ball = FindObjectOfType<Ball>();
         controller = GetComponent<CharacterController>();
         halo = GetComponentInChildren<Halo>().GetComponent<Renderer>();
+        animator = GetComponentInChildren<Animator>();
         spikeLine.enabled = false;
     }
 
@@ -81,6 +88,7 @@ public class Athlete : MonoBehaviour
         Vector3 move = new Vector3(movementInput.x, 0, movementInput.y);
 
         controller.Move(move * Time.deltaTime * moveSpeed);
+        animator.SetFloat("Velocity", controller.velocity.magnitude);
 
         // Check for roll movement
         if (rolled && Mathf.Approximately(0f, currentRollCooldown)) 
@@ -94,12 +102,23 @@ public class Athlete : MonoBehaviour
                 {
                     rollDirection = new Vector3(0f, 0f, Mathf.Sign(move.z));
                 }
+                animator.SetTrigger("Roll");
                 rolled = false;
                 isRolling = true;
                 currentRollCooldown = rollCooldown;
                 rollTime = rollDuration;
             }
         }
+        /*
+        if (readyToRoll)
+        {
+            isRolling = true;
+            readyToRoll = false;
+
+            currentRollCooldown = rollCooldown;
+            rollTime = rollDuration;
+        }
+        */
         if (currentRollCooldown > 0f)
         {
             currentRollCooldown -= Time.deltaTime;
@@ -127,7 +146,13 @@ public class Athlete : MonoBehaviour
         {
             if (jumped && groundedPlayer)
             {
+                animator.SetTrigger("Jump");
+                jumped = false;
+            }
+            if (readyToJump)
+            {
                 playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
+                readyToJump = false;
             }
             if (move != Vector3.zero)
             {
@@ -162,6 +187,16 @@ public class Athlete : MonoBehaviour
         this.jumped = jumped;
     }
 
+    public void SetReadyToJump()
+    {
+        this.readyToJump = true;
+    }
+
+    public void SetReadyToRoll()
+    {
+        this.readyToRoll = true;
+    }
+
     public void SetRolled (bool rolled)
     {
         this.rolled = rolled;
@@ -174,7 +209,7 @@ public class Athlete : MonoBehaviour
 
     public bool StartSpiking()
     {
-        float distanceToBall = Vector3.Distance(ball.transform.position, arms.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
         if (distanceToBall < spikeRange)
         {
             Debug.Log("Beginning spike mode: time will slow and spike line will show.");
@@ -189,7 +224,7 @@ public class Athlete : MonoBehaviour
     public void StopSpikingIfOutOfRange()
     {
         if (!isSpiking) return;
-        float distanceToBall = Vector3.Distance(ball.transform.position, arms.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
         if (distanceToBall > spikeRange)
         {
             Time.timeScale = 1f;
@@ -200,7 +235,7 @@ public class Athlete : MonoBehaviour
 
     public bool AttemptSpike()
     {
-        float distanceToBall = Vector3.Distance(ball.transform.position, arms.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
         if (distanceToBall < spikeRange)
         {
             ball.Hit(team, "spike", spikeAimPosition);
@@ -214,7 +249,7 @@ public class Athlete : MonoBehaviour
 
     public bool AttemptBump()
     {
-        float distanceToBall = Vector3.Distance(ball.transform.position, arms.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
         if (distanceToBall < bumpRange)
         {
             Vector3 destination;
@@ -227,6 +262,16 @@ public class Athlete : MonoBehaviour
                 destination = otherAthlete.transform.position;
             }
             return ball.Hit(team, "bump", destination);
+        }
+        return false;
+    }
+
+    public bool AttemptSet()
+    {
+        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
+        if (distanceToBall < setRange)
+        {
+            return ball.Hit(team, "set", otherAthlete.transform.position);
         }
         return false;
     }

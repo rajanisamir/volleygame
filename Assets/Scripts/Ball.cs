@@ -36,11 +36,11 @@ public class Ball : MonoBehaviour
 
     [SerializeField] float spikeTime = 0.5f;
     [SerializeField] float serveTime = 1.5f;
+    [SerializeField] float setTime = 1.5f;
     [SerializeField] float bumpTime = 3f;
     [SerializeField] float airResistance = 2f;
     [SerializeField] float returnToServerTime = 1.0f;
     [SerializeField] int hitLimit = 3;
-    [SerializeField] bool allowAnyHits = false;
 
     Rigidbody rb;
    
@@ -141,26 +141,17 @@ public class Ball : MonoBehaviour
     {
         if (lastHitter == team) consecutiveTeamHits += 1;
         else consecutiveTeamHits = 1;
+        print(consecutiveTeamHits);
+        lastHitter = team;
         if (consecutiveTeamHits > hitLimit)
         {
             Debug.Log("Foul");
             if (team == "A") HandleDeadBall("B");
             else HandleDeadBall("A");
-        }
-        if (!allowAnyHits)
-        {
-            if (hitType == "serve" && transform.parent == null)
-            {
-                return false;
-            }
-            if (hitType != "serve" && transform.parent != null)
-            {
-                return false;
-            }
-        }
-        lastHitter = team;
+        }       
         ReleaseBallFromServer();
         if (hitType == "serve") HitToPoint(target, serveTime);
+        if (hitType == "set") HitToPoint(target, setTime);
         if (hitType == "bump") HitToPoint(target, bumpTime);
         if (hitType == "spike") HitToPoint(target, spikeTime);
         return true;
