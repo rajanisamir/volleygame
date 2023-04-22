@@ -1093,9 +1093,9 @@ MonoBehaviour:
   rollDuration: 0.75
   rollSpeed: 10
   rollCooldown: 0.5
-  bumpRange: 2
-  setRange: 2
-  spikeRange: 2
+  bumpRange: 1.5
+  setRange: 1.5
+  spikeRange: 1.5
   spikeSlowDown: 0.4
   holdPos: {fileID: 3142808188711385783}
   setFrom: {fileID: 5180872568377745699}
@@ -1105,6 +1105,9 @@ MonoBehaviour:
   spikeFrom: {fileID: 4631366840973151017}
   spikeLine: {fileID: 3142808188064340677}
   halo: {fileID: 3142808188815951166}
+  surfaceRenderer: {fileID: 8886638701409329539}
+  teamAMaterial: {fileID: 2100000, guid: cb1cee3cfd5f6c54aa5fb4d992413fd0, type: 2}
+  teamBMaterial: {fileID: 2100000, guid: 3e8b540d9bfd9c5498ee140abd081b27, type: 2}
 --- !u!95 &3142808187023930781
 Animator:
   serializedVersion: 4
@@ -1348,7 +1351,6 @@ GameObject:
   - component: {fileID: 3142808188815951296}
   - component: {fileID: 3142808188815951167}
   - component: {fileID: 3142808188815951166}
-  - component: {fileID: 3142808188815951297}
   m_Layer: 6
   m_Name: Halo
   m_TagString: Untagged
@@ -1421,18 +1423,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &3142808188815951297
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3142808188815951299}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73ee10f2cdec561419431127af4aa386, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &3151933098939775833
 GameObject:
   m_ObjectHideFlags: 0
@@ -1489,7 +1479,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3183606504099262441}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: 0.5}
+  m_LocalPosition: {x: 0, y: 2.5, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -29,6 +29,9 @@ public class Athlete : MonoBehaviour
     [Header("References")]
     [SerializeField] LineRenderer spikeLine;
     [SerializeField] Renderer halo;
+    [SerializeField] Renderer surfaceRenderer;
+    [SerializeField] Material teamAMaterial;
+    [SerializeField] Material teamBMaterial;
 
     Player player;
     Athlete otherAthlete;
@@ -61,6 +64,7 @@ public class Athlete : MonoBehaviour
         SetActive(active);
 
         this.team = team;
+        surfaceRenderer.material = team == "A" ? teamAMaterial : teamBMaterial;
         string opponentCourtTag = team == "A" ? "CourtTeamB" : "CourtTeamA";
         Debug.Log(opponentCourtTag);
         opponentCourtCenter = GameObject.FindGameObjectWithTag(opponentCourtTag).transform.position;
