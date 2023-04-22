@@ -54,6 +54,11 @@ public class PlayerManager : MonoBehaviour
         if (playerTeamB != null) playerTeamB.MoveAthletesToSpawn();
     }
 
+    public void SetReadyToServe()
+    {
+        currentServer.SetReadyToServe();
+    }
+
     public Transform GetServerHoldPos()
     {
         return currentServer.GetServerHoldPos();

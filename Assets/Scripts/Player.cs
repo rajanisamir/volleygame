@@ -182,7 +182,6 @@ public class Player : MonoBehaviour
     public void SetIsServer(bool server)
     {   
         SetTargetVisible(server);
-        readyToServe = server;
         isServer = server;
         // If player wasn't the server, need to switch the athlete who is serving.
         if (server && !isServer)
@@ -191,9 +190,14 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void SetReadyToServe()
+    {
+        readyToServe = true;
+    }
+
     public Transform GetServerHoldPos()
     {
-        return leftAthlete.posHold;
+        return leftAthlete.GetHoldPos();
     }
 
     // Input System Callbacks

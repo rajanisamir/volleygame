@@ -4,32 +4,48 @@ using UnityEngine;
 
 public class Athlete : MonoBehaviour
 {
-    [SerializeField] float spikeSlowDown = 0.4f;
+    [Header("Movement Settings")]
     [SerializeField] float moveSpeed = 5f;
     [SerializeField] float jumpHeight = 1f;
-    [SerializeField] float bumpRange = 2f;
-    [SerializeField] float setRange = 2f;
-    [SerializeField] float spikeRange = 2f;
     [SerializeField] float gravityValue = -9.81f;
     [SerializeField] float rollDuration = 0.25f;
     [SerializeField] float rollSpeed = 20f;
     [SerializeField] float rollCooldown = 2f;
 
+    [Header("Hit Settings")]
+    [SerializeField] float bumpRange = 2f;
+    [SerializeField] float setRange = 2f;
+    [SerializeField] float spikeRange = 2f;
+    [SerializeField] float spikeSlowDown = 0.4f;
+
+    [Header("Athlete Positions")]
+    [SerializeField] Transform holdPos;
+    [SerializeField] Transform setFrom;
+    [SerializeField] Transform setTo;
+    [SerializeField] Transform bumpFrom;
+    [SerializeField] Transform bumpTo;
+    [SerializeField] Transform spikeFrom;
+
+    [Header("References")]
     [SerializeField] LineRenderer spikeLine;
-   
-    public Transform posHold;
+    [SerializeField] Renderer halo;
+
     Player player;
     Athlete otherAthlete;
-
+    Ball ball;
     Target target;
+    
     CharacterController controller;
-    Renderer halo;
+    Animator animator;
 
-    Vector3 spikeAimPosition;
-    Vector3 playerVelocity;
+    string team;
+    Vector3 opponentCourtCenter;
 
     Vector2 movementInput = Vector2.zero;
     Vector3 rollDirection;
+    Vector3 spikeAimPosition;
+    Vector3 playerVelocity;
+
     bool jumped = false;
     bool readyToJump = false;
     bool rolled = false;
@@ -39,14 +55,7 @@ public class Athlete : MonoBehaviour
     bool groundedPlayer;
     float rollTime;
     float currentRollCooldown = 0f;
-    string team;
-
-    Ball ball;
-
-    Vector3 opponentCourtCenter;
-
-    Animator animator;
-
+    
     public void Init(bool active, string team, Player player, Athlete otherAthlete, Target target)
     {
         SetActive(active);
@@ -65,7 +74,6 @@ public class Athlete : MonoBehaviour
     {
         ball = FindObjectOfType<Ball>();
         controller = GetComponent<CharacterController>();
-        halo = GetComponentInChildren<Halo>().GetComponent<Renderer>();
         animator = GetComponentInChildren<Animator>();
         spikeLine.enabled = false;
     }
@@ -209,7 +217,7 @@ public class Athlete : MonoBehaviour
 
     public bool StartSpiking()
     {
-        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, holdPos.position);
         if (distanceToBall < spikeRange)
         {
             Debug.Log("Beginning spike mode: time will slow and spike line will show.");
@@ -224,7 +232,7 @@ public class Athlete : MonoBehaviour
     public void StopSpikingIfOutOfRange()
     {
         if (!isSpiking) return;
-        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, holdPos.position);
         if (distanceToBall > spikeRange)
         {
             Time.timeScale = 1f;
@@ -235,7 +243,7 @@ public class Athlete : MonoBehaviour
 
     public bool AttemptSpike()
     {
-        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, spikeFrom.position);
         if (distanceToBall < spikeRange)
         {
             ball.Hit(team, "spike", spikeAimPosition);
@@ -249,7 +257,7 @@ public class Athlete : MonoBehaviour
 
     public bool AttemptBump()
     {
-        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, bumpFrom.position);
         if (distanceToBall < bumpRange)
         {
             Vector3 destination;
@@ -259,7 +267,7 @@ public class Athlete : MonoBehaviour
             }
             else
             {
-                destination = otherAthlete.transform.position;
+                destination = otherAthlete.bumpTo.position;
             }
             return ball.Hit(team, "bump", destination);
         }
@@ -268,10 +276,10 @@ public class Athlete : MonoBehaviour
 
     public bool AttemptSet()
     {
-        float distanceToBall = Vector3.Distance(ball.transform.position, posHold.position);
+        float distanceToBall = Vector3.Distance(ball.transform.position, setFrom.position);
         if (distanceToBall < setRange)
         {
-            return ball.Hit(team, "set", otherAthlete.transform.position);
+            return ball.Hit(team, "set", otherAthlete.setTo.position);
         }
         return false;
     }
@@ -284,5 +292,20 @@ public class Athlete : MonoBehaviour
     public void SetActive(bool active)
     {
         halo.enabled = active;
+    }
+
+    public Transform GetHoldPos()
+    {
+        return holdPos;
+    }
+
+    public Transform GetBumpTo()
+    {
+        return bumpTo;
+    }
+
+    public Transform GetSetTo()
+    {
+        return setTo;
     }
 }

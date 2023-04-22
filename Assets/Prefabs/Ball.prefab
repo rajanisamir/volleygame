@@ -127,9 +127,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 897127e66ce95c44297d6947226d49c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spikeTime: 0.8
+  spikeSpeed: 7
   serveTime: 1.5
+  setTime: 1.5
   bumpTime: 3
   airResistance: 2
   returnToServerTime: 1
-  allowAnyHits: 0
+  hitLimit: 3

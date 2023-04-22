@@ -34,7 +34,7 @@ public class Ball : MonoBehaviour
     ScoreManager scoreManager;
     PlayerManager playerManager;
 
-    [SerializeField] float spikeTime = 0.5f;
+    [SerializeField] float spikeSpeed = 7f;
     [SerializeField] float serveTime = 1.5f;
     [SerializeField] float setTime = 1.5f;
     [SerializeField] float bumpTime = 3f;
@@ -127,6 +127,7 @@ public class Ball : MonoBehaviour
         transform.parent = holdPos;
         transform.position = holdPos.position;
         transform.rotation = Quaternion.identity;
+        playerManager.SetReadyToServe();
     }
 
     private void ReleaseBallFromServer()
@@ -139,17 +140,15 @@ public class Ball : MonoBehaviour
     // Ball Hitting Functions
     public bool Hit(string team, string hitType, Vector3 target)
     {
-        if (lastHitter == team) consecutiveTeamHits += 1;
+        if (lastHitter == team && consecutiveTeamHits == hitLimit) return false;
+        else if (lastHitter == team) consecutiveTeamHits++;
         else consecutiveTeamHits = 1;
-        print(consecutiveTeamHits);
-        lastHitter = team;
-        if (consecutiveTeamHits > hitLimit)
-        {
-            Debug.Log("Foul");
-            if (team == "A") HandleDeadBall("B");
-            else HandleDeadBall("A");
-        }       
+        lastHitter = team;  
         ReleaseBallFromServer();
+
+        float multipliedSpikeSpeed = spikeSpeed + Mathf.Max(0f, (transform.position.y - 2f)) * 4f;
+        float spikeTime = Vector3.Distance(target, transform.position) / multipliedSpikeSpeed;
+
         if (hitType == "serve") HitToPoint(target, serveTime);
         if (hitType == "set") HitToPoint(target, setTime);
         if (hitType == "bump") HitToPoint(target, bumpTime);
